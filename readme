@@ -1,0 +1,72 @@
+
+
+const forgotPassword = async (req, res) => {
+    const email = req.body.email;
+    if (!email) return res.status(422).send("email is required.");
+    try {
+        const data = await authService.forgotPassword(email);
+        res.send(data);
+    } catch (error) {
+        res.status(error.statusCode || 500).send(error.message);
+    };
+};
+
+const resetPassword = async (req, res) => {
+    const password = req.body.password;
+    const confirmPassword = req.body.confirmPassword;
+    const token = req.query.token;
+    const userId = req.params.userId;
+    if (!password) return res.send("Password is required");
+    if (password != confirmPassword) {
+        return res.status(400).send("Password does not matched.");
+    };
+    try {
+        const data = await authService.resetPassword(userId, password, token);
+        res.json(data);
+
+
+    } catch (error) {
+        res.status(error.statusCode || 500).send(error.message);
+    };
+};
+
+const forgotPassword = async (email) => {
+    const user = await User.findOne({ email });
+
+    const otp = Math.floor(Math.random() * 1000000) + 1;
+
+    await ResetPassword.create({
+        userId: user._id,
+        token: otp
+    });
+    return { message: "reset password link has been send." };
+};
+
+
+
+
+
+const resetPassword = async (userId, password, token) => {
+
+    const data = await ResetPassword.findOne({ userId,expireAt:{$gt:Date.now()}, });
+
+    if (!data || data.token != token) {
+        throw {
+            statusCode: 400,
+            message: "Invalid token."
+        };
+    };
+    if(data.isUsed){
+        throw{
+            statuscode:400,
+            message:"Token already used."
+        };
+    };
+    const hashedPassword = bcrypt.hashSync(password);
+    await User.findByIdAndUpdate(userId, {
+        password: hashedPassword
+    });
+    await ResetPassword.findByIdAndUpdate(data._id, { isUsed: true });
+    return { message: "Password reset successfully." }
+
+}
