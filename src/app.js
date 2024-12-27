@@ -6,6 +6,7 @@ import connectDB from "./database.js";
 import logger from "./middlewares/logger.js";
 import authRoute from "./routes/auth.js";
 import productRoute from "./routes/product.js"
+import cors from "cors";
 import contactRoute from "./routes/contact.js"
 
 const app = express();
@@ -15,7 +16,11 @@ connectDB();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(logger);
-
+app.use(
+    cors({
+        origin: process.env.API_URL,
+    })
+);
 
 app.get("/", (req, res) => {
     res.send("this is home page");
