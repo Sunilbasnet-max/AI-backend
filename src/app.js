@@ -15,11 +15,7 @@ connectDB();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(logger);
-app.use(
-    cors({
-        origin:process.env.API_URL,
-    })
-)
+
 
 app.get("/", (req, res) => {
     res.send("this is home page");
